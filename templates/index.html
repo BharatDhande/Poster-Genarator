@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Poster Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-card: rgba(17, 24, 39, 0.85);
+      --border: rgba(255,255,255,0.08);
+      --text: #e2e8f0;
+      --text-dim: #94a3b8;
+      --accent: #3b82f6;
+      --accent-2: #0ea5e9;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, sans-serif;
+      background: radial-gradient(circle at 20% 0%, #1e293b 0%, #0f172a 70%);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.25rem 1rem 2rem;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      gap: 1rem;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: .25rem;
+    }
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.6rem, 2.6vw, 2.6rem);
+      background: linear-gradient(90deg, #60a5fa, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    header p {
+      margin: .35rem 0 0;
+      color: var(--text-dim);
+      font-size: .95rem;
+    }
+
+    .glass {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      backdrop-filter: blur(12px) saturate(140%);
+      -webkit-backdrop-filter: blur(12px) saturate(140%);
+      border-radius: var(--radius);
+      box-shadow: 0 16px 32px rgba(0,0,0,0.2);
+    }
+
+    /* Composer */
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: .75rem;
+      padding: .75rem;
+      align-items: start;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    textarea {
+      min-height: 110px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.03);
+      color: var(--text);
+      border-radius: var(--radius);
+      padding: .9rem 1rem;
+      font-size: 0.95rem;
+      resize: vertical;
+      outline: none;
+      transition: border .15s;
+    }
+    textarea:focus {
+      border-color: rgba(255,255,255,0.12);
+    }
+    button {
+      border: none;
+      border-radius: var(--radius);
+      padding: .9rem 1.1rem;
+      cursor: pointer;
+      color: #fff;
+      font-weight: 600;
+      background-image: linear-gradient(90deg, var(--accent), var(--accent-2));
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.26);
+      transition: transform .12s, box-shadow .12s, opacity .12s;
+      height: 100%;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.33);
+    }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Chat */
+    .chat {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .msg {
+      padding: 1rem 1.1rem 1.25rem;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.03);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+      animation: fadeIn .18s ease;
+    }
+    .prompt {
+      color: #93c5fd;
+      margin-bottom: .35rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg h3 {
+      margin: .75rem 0 .35rem;
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .poster {
+      margin: .5rem 0 0;
+      display: block;
+      max-width: 480px;
+      width: 100%;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(0,0,0,0.25);
+      transition: transform .15s;
+    }
+    .poster:hover { transform: scale(1.01); }
+    .caption {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: .75rem .85rem;
+      border-radius: .6rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      font-size: .92rem;
+      color: #cbd5e1;
+      margin-top: .4rem;
+    }
+    .meta {
+      margin-top: .6rem;
+      display: flex;
+      gap: .6rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn-small {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: .35rem .65rem;
+      font-size: .85rem;
+      cursor: pointer;
+      color: var(--text);
+      transition: background .15s, transform .12s;
+    }
+    .btn-small:hover {
+      background: rgba(255,255,255,0.12);
+      transform: translateY(-1px);
+    }
+    .thinking {
+      opacity: .75;
+      font-style: italic;
+    }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .7s infinite linear;
+      display: inline-block;
+      margin-right: .4rem;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(3px); }
+      to   { opacity: 1; transform: none; }
+    }
+
+    @media (max-width: 768px) {
+      .poster { max-width: 100%; }
+      .composer { grid-template-columns: 1fr; }
+      button { height: auto; }
+    }
+.btn-small {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.8rem;
+  border-radius: 0.3rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+}
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+
+   <header style="display: flex; justify-content: space-between; align-items: center;">
+  <div>
+    <h1>AI Poster Generator</h1>
+    <p>Enter a prompt. Get a designed poster + a caption. Download it in one click.</p>
+  </div>
+  <button id="clearHistoryBtn" class="btn-small btn-danger">Clear</button>
+</header>
+
+
+
+    <!-- Chat -->
+    <div id="chat" class="chat">
+      {% for item in history %}
+        <div class="msg glass">
+          <div class="prompt"><strong>You:</strong> {{ item.prompt }}</div>
+
+          <h3>Poster</h3>
+          <img class="poster" src="{{ item.poster_url }}" alt="Poster" />
+
+          <div class="meta">
+            <a class="btn-small" href="{{ item.poster_url }}" download>Download</a>
+            <button class="btn-small copy-btn" data-caption="{{ item.caption|replace('\n','&#10;') }}">Copy caption</button>
+          </div>
+
+          <h3>Caption</h3>
+          <div class="caption">{{ item.caption }}</div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <!-- Composer -->
+    <form id="composer" class="composer glass">
+      <textarea id="prompt" placeholder='e.g. "Promote our AI-based Medical Diagnosis System with 95% accuracy and instant results for diabetes and heart disease. BRAND_NAME=MedAI Labs BRAND_WEBSITE=https://medai.example BRAND_CONTACT=+91 99999 99999"'></textarea>
+      <button id="send" type="submit"><span id="btnLabel">Generate</span></button>
+    </form>
+
+  </div>
+
+  <script>
+    const USE_DOWNLOAD_ROUTE = false; // set to true if you added /download_poster/<filename> in Flask
+
+    const form = document.getElementById('composer');
+    const promptEl = document.getElementById('prompt');
+    const sendBtn = document.getElementById('send');
+    const btnLabel = document.getElementById('btnLabel');
+    const chat = document.getElementById('chat');
+
+    // delegate copy events for history items already rendered from server
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('copy-btn')) {
+        const caption = e.target.getAttribute('data-caption') || '';
+        navigator.clipboard.writeText(caption.replace(/&#10;/g, '\n'));
+        e.target.textContent = 'Copied!';
+        setTimeout(() => (e.target.textContent = 'Copy caption'), 1200);
+      }
+    });
+
+    const appendThinking = () => {
+      const div = document.createElement('div');
+      div.className = 'msg thinking glass';
+      div.innerHTML = '<span class="spinner"></span>Generating poster…';
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+      return div;
+    };
+
+    const escapeHtml = (str) =>
+      str.replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+
+    const parseFileName = (url) => url.split('/').pop();
+
+    const downloadHref = (posterUrl) => {
+      if (!USE_DOWNLOAD_ROUTE) return posterUrl;
+      const filename = parseFileName(posterUrl);
+      return `/download_poster/${filename}`;
+    };
+
+    const appendResponse = (prompt, data) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg glass';
+
+      const safePrompt = escapeHtml(prompt).replace(/\n/g, "<br>");
+      const safeCaption = escapeHtml(data.caption ?? '');
+      const fileHref = data.poster_url ? downloadHref(data.poster_url) : '#';
+
+      wrapper.innerHTML = `
+        <div class="prompt"><strong>You:</strong> ${safePrompt}</div>
+
+        <h3>Poster</h3>
+        ${data.poster_url
+          ? `<img class="poster" src="${data.poster_url}" alt="Poster" />`
+          : '<em>(no poster URL returned)</em>'}
+
+        <div class="meta">
+          ${data.poster_url
+            ? `<a class="btn-small" href="${fileHref}" download>Download</a>`
+            : ''}
+          <button class="btn-small copy-btn" data-caption="${safeCaption.replace(/\n/g, '&#10;')}">Copy caption</button>
+        </div>
+
+        <h3>Caption</h3>
+        <div class="caption">${safeCaption}</div>
+      `;
+
+      chat.appendChild(wrapper);
+      chat.scrollTop = chat.scrollHeight;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const prompt = promptEl.value.trim();
+      if (!prompt) return;
+
+      sendBtn.disabled = true;
+      btnLabel.textContent = 'Generating…';
+
+      const thinking = appendThinking();
+
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+
+        let data;
+        try {
+          data = await res.json();
+        } catch (err) {
+          const text = await res.text();
+          throw new Error(text || 'Non-JSON response from server');
+        }
+
+        chat.removeChild(thinking);
+
+        if (!res.ok || data.error) {
+          appendResponse(prompt, { poster_url: '', caption: 'Server error: ' + (data.error || res.statusText) });
+        } else {
+          appendResponse(prompt, data);
+        }
+
+      } catch (err) {
+        chat.removeChild(thinking);
+        appendResponse(prompt, { poster_url: '', caption: 'Error: ' + err.message });
+      } finally {
+        sendBtn.disabled = false;
+        btnLabel.textContent = 'Generate';
+        promptEl.value = '';
+        promptEl.focus();
+      }
+    });
+
+    const clearBtn = document.getElementById('clearHistoryBtn');
+clearBtn.addEventListener('click', async () => {
+  if (!confirm("Are you sure you want to delete all chat history?")) return;
+
+  try {
+    const res = await fetch('/clear_history', { method: 'POST' });
+    const data = await res.json();
+    if (data.status === "ok") {
+      chat.innerHTML = ''; // Clear chat container in UI
+    }
+  } catch (err) {
+    alert("Failed to clear history: " + err.message);
+  }
+});
+
+  </script>
+</body>
+</html>

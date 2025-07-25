@@ -1,0 +1,6 @@
+Flask
+gunicorn
+openai==1.35.15
+requests
+python-dotenv
+Pillow
