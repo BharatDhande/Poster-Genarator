@@ -123,7 +123,8 @@ Pillow
 ---
 
 ## 🎥 Project Demo
-<video src="AI Poster Chat.mp4" controls width="600"></video>
+[▶ Watch the Demo Video](demo.mp4)
+
 
 
 
