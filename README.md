@@ -6,6 +6,9 @@ Users can input a simple prompt, and the app creates **ready-to-post posters wit
 
 ---
 
+![Demo](./demo-gif.gif)
+
+
 ## **Features**
 - **AI Text Analysis (NLP):**
   - Extracts keywords, tone, and sentiment from the prompt.
