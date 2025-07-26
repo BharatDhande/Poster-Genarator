@@ -122,6 +122,11 @@ Pillow
 
 ---
 
+## 🎥 Project Demo
+<video src="AI Poster Chat.mp4" controls width="600"></video>
+
+
+
 ## **Future Enhancements**
 - Save poster history in a database.
 - Enable image editing (e.g., add custom text or logos).
