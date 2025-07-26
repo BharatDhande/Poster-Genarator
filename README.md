@@ -58,8 +58,8 @@ Users can input a simple prompt, and the app creates **ready-to-post posters wit
 
 ### **1. Clone Repository**
 ```bash
-git clone https://github.com/your-username/ai-poster-chat.git
-cd ai-poster-chat
+git clone https://github.com/BharatDhande/Poster-Genarator.git
+cd poster generator
 ```
 
 ### **2. Create Virtual Environment**
