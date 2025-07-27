@@ -119,6 +119,8 @@ Pillow
 
 ## **Screenshots**
 ![AI Poster Chat Screenshot](static/ss1.png)
+![AI Poster Chat Screenshot](static/ss4.png)
+
 ![AI Poster Chat Screenshot](static/ss2.png)
 ![AI Poster Chat Screenshot](static/ss3.png)
 
